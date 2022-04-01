@@ -1,3 +1,4 @@
+# app env = myenv (source activate myenv)
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
@@ -10,7 +11,7 @@ import pandas as pd
 # url_confirmed = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv'
 # url_deaths = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv'
 # url_recovered = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv'
-circulation = pd.read_csv('data/M.Ahmed Charge Hist log output with IDs31.csv', parse_dates=['Trans Hist Date'])
+circulation = pd.read_csv('data/M.Ahmed Charge Hist log output with IDs (1)1.csv', parse_dates=['Trans Hist Date'])
 # import pyodbc
 # conn = pyodbc.connect('Driver={SQL Server};'
 #                       'Server=kcplsql;'
