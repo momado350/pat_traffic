@@ -85,7 +85,7 @@ app.layout = html.Div([
             html.Div([
                 html.H3("Patrons Traffic", style={"margin-bottom": "0px", 'color': 'white'}),
                 html.H5("Track Patron Traffic by Library Branch", style={"margin-top": "0px", 'color': 'white'}),
-                html.P("Traffic is counted based on Circulation and Computer Usage. ", style={"margin-top": "0px", 'color': 'white'}),
+                html.P("Traffic is counted based on circulation and Computer Usage. ", style={"margin-top": "0px", 'color': 'white'}),
             ])
         ], className="one-half column", id="title"),
 
@@ -107,13 +107,17 @@ html.Div([
                          clearable = True,
                          disabled = False,
                          style = {'display': True},
-                         value = 'KC-PLAZA',
+                         value = 'all_values',
                          placeholder = 'Select branch',
                          options = [{'label': c, 'value': c}
-                                    for c in (mer_df['Station Library Checkout'].unique())], className = 'dcc_compon'),
+                                    for c in (mer_df['Station Library Checkout'].unique())] + [{'label': 'SELECT ALL', 'value': 'all_values'}]
+                                 
+                                    , className = 'dcc_compon'),
+                                
 
 
-            ], className = "create_container2 four columns", style = {'margin-bottom': '20px', "margin-top": "20px"}),
+            ],
+            className = "create_container2 four columns", style = {'margin-bottom': '20px', "margin-top": "20px"}),
 
     ], className = "row flex-display"),
 
@@ -157,13 +161,25 @@ html.Div([
 
 @app.callback(
     Output('live_text1', 'children'),
-    [Input('w_countries', 'value')]
+    [
+        Input('w_countries', 'value')
+    ]
     )
 
 def update_graph(w_countries):
-    patrons = mer_df.groupby(['Trans Hist Date', 'Station Library Checkout'])[['patrons', 'SessionID', 'total']].sum().reset_index()
-    total_patron = patrons[patrons['Station Library Checkout'] == w_countries]['total'].iloc[-1]
-    today_patron = patrons[patrons['Station Library Checkout'] == w_countries]['total'].iloc[-1] - patrons[patrons['Station Library Checkout'] == w_countries]['total'].iloc[-2]
+    if w_countries == 'all_values':
+        patrons = mer_df.groupby(['Trans Hist Date'])[['patrons', 'SessionID', 'total']].sum().reset_index()
+        total_patron = patrons['total'].iloc[-1]
+        today_patron = patrons['total'].iloc[-1] - patrons['total'].iloc[-2]
+    else:
+        patrons = mer_df.groupby(['Trans Hist Date', 'Station Library Checkout'])[['patrons', 'SessionID', 'total']].sum().reset_index()
+        total_patron = patrons[patrons['Station Library Checkout'] == w_countries]['total'].iloc[-1] 
+        today_patron = patrons[patrons['Station Library Checkout'] == w_countries]['total'].iloc[-1] - patrons[patrons['Station Library Checkout'] == w_countries]['total'].iloc[-2]
+
+    
+    
+    
+    #today_patron1 = patrons1[['total'].iloc[-1] - patrons1[['total'].iloc[-2]
 
 
 
@@ -177,6 +193,11 @@ def update_graph(w_countries):
                              'color': 'orange',
                              'fontSize': 40}
                       ),
+                    #   html.P('{0:,.0f}'.format(total_patron1),
+                    #   style={'textAlign': 'center',
+                    #          'color': 'orange',
+                    #          'fontSize': 40}
+                    #   ),
                html.P('Yesterday:  ' + ' ' + '{0:,.0f}'.format(today_patron)
                       + ' (' + str(round(((today_patron) / total_patron) * 100, 2)) + '%' + ' ' + 'vs day before)',
                       style = {
@@ -194,9 +215,14 @@ def update_graph(w_countries):
     )
 
 def update_graph(w_countries):
-    patrons = mer_df.groupby(['Trans Hist Date', 'Station Library Checkout'])[['patrons', 'SessionID', 'total']].sum().reset_index()
-    total_computer = patrons[patrons['Station Library Checkout'] == w_countries]['SessionID'].iloc[-1]
-    today_computer = patrons[patrons['Station Library Checkout'] == w_countries]['SessionID'].iloc[-1] - patrons[patrons['Station Library Checkout'] == w_countries]['SessionID'].iloc[-2]
+    if w_countries == 'all_values':
+        patrons = mer_df.groupby(['Trans Hist Date'])[['patrons', 'SessionID', 'total']].sum().reset_index()
+        total_computer = patrons['SessionID'].iloc[-1]
+        today_computer = patrons['SessionID'].iloc[-1] - patrons['SessionID'].iloc[-2]
+    else:
+        patrons = mer_df.groupby(['Trans Hist Date', 'Station Library Checkout'])[['patrons', 'SessionID', 'total']].sum().reset_index()
+        total_computer = patrons[patrons['Station Library Checkout'] == w_countries]['SessionID'].iloc[-1]
+        today_computer = patrons[patrons['Station Library Checkout'] == w_countries]['SessionID'].iloc[-1] - patrons[patrons['Station Library Checkout'] == w_countries]['SessionID'].iloc[-2]
 
 
 
@@ -227,9 +253,14 @@ def update_graph(w_countries):
     )
 
 def update_graph(w_countries):
-    patrons = mer_df.groupby(['Trans Hist Date', 'Station Library Checkout'])[['patrons', 'SessionID', 'total']].sum().reset_index()
-    total_criculation = patrons[patrons['Station Library Checkout'] == w_countries]['patrons'].iloc[-1]
-    today_circulation = patrons[patrons['Station Library Checkout'] == w_countries]['patrons'].iloc[-1] - patrons[patrons['Station Library Checkout'] == w_countries]['patrons'].iloc[-2]
+    if w_countries == 'all_values':
+        patrons = mer_df.groupby(['Trans Hist Date'])[['patrons', 'SessionID', 'total']].sum().reset_index()
+        total_criculation = patrons['patrons'].iloc[-1]
+        today_circulation = patrons['patrons'].iloc[-1] - patrons['patrons'].iloc[-2]
+    else:
+        patrons = mer_df.groupby(['Trans Hist Date', 'Station Library Checkout'])[['patrons', 'SessionID', 'total']].sum().reset_index()
+        total_criculation = patrons[patrons['Station Library Checkout'] == w_countries]['patrons'].iloc[-1]
+        today_circulation = patrons[patrons['Station Library Checkout'] == w_countries]['patrons'].iloc[-1] - patrons[patrons['Station Library Checkout'] == w_countries]['patrons'].iloc[-2]
 
 
 
@@ -260,9 +291,14 @@ def update_graph(w_countries):
     )
 
 def update_graph(w_countries):
-    patrons1 = mer_df.groupby(['Station Library Checkout', pd.Grouper(key='Trans Hist Date', freq='1W')])[['patrons', 'SessionID', 'total']].sum().reset_index()
-    weekly_total = patrons1[patrons1['Station Library Checkout'] == w_countries]['total'].iloc[-1]
-    week_total_dif = patrons1[patrons1['Station Library Checkout'] == w_countries]['total'].iloc[-1] - patrons1[patrons1['Station Library Checkout'] == w_countries]['total'].iloc[-2]
+    if w_countries == 'all_values':
+        patrons1 = mer_df.groupby([pd.Grouper(key='Trans Hist Date', freq='1W')])[['patrons', 'SessionID', 'total']].sum().reset_index()
+        weekly_total = patrons1['total'].iloc[-2]
+        week_total_dif = patrons1['total'].iloc[-2] - patrons1['total'].iloc[-3]
+    else:
+        patrons1 = mer_df.groupby(['Station Library Checkout', pd.Grouper(key='Trans Hist Date', freq='1W')])[['patrons', 'SessionID', 'total']].sum().reset_index()
+        weekly_total = patrons1[patrons1['Station Library Checkout'] == w_countries]['total'].iloc[-2]
+        week_total_dif = patrons1[patrons1['Station Library Checkout'] == w_countries]['total'].iloc[-2] - patrons1[patrons1['Station Library Checkout'] == w_countries]['total'].iloc[-3]
 
 
 
@@ -273,14 +309,14 @@ def update_graph(w_countries):
                        ),
                html.P('{0:,.0f}'.format(weekly_total),
                       style={'textAlign': 'center',
-                             'color': 'green',
+                             'color': 'orange',
                              'fontSize': 40}
                       ),
-               html.P('This Week:  ' + ' ' + '{0:,.0f}'.format(week_total_dif)
-                      + ' (' + str(round(((week_total_dif) / weekly_total) * 100, 2)) + '%' + ' ' + 'vs last Week)',
+               html.P('Last Week:  ' + ' ' + '{0:,.0f}'.format(week_total_dif)
+                      + ' (' + str(round(((week_total_dif) / weekly_total) * 100, 2)) + '%' + ' ' + 'vs Week before)',
                       style = {
                           'textAlign': 'center',
-                          'color': 'green',
+                          'color': 'orange',
                           'fontSize': 15,
                           'margin-top': '-18px'}
                       )
@@ -293,9 +329,14 @@ def update_graph(w_countries):
     )
 
 def update_graph(w_countries):
-    patrons1 = mer_df.groupby(['Station Library Checkout', pd.Grouper(key='Trans Hist Date', freq='1W')])[['patrons', 'SessionID', 'total']].sum().reset_index()
-    weekly_Computer = patrons1[patrons1['Station Library Checkout'] == w_countries]['SessionID'].iloc[-1]
-    week_computer_dif = patrons1[patrons1['Station Library Checkout'] == w_countries]['SessionID'].iloc[-1] - patrons1[patrons1['Station Library Checkout'] == w_countries]['SessionID'].iloc[-2]
+    if w_countries == 'all_values':
+        patrons1 = mer_df.groupby([pd.Grouper(key='Trans Hist Date', freq='1W')])[['patrons', 'SessionID', 'total']].sum().reset_index()
+        weekly_Computer = patrons1['SessionID'].iloc[-2]
+        week_computer_dif = patrons1['SessionID'].iloc[-2] - patrons1['SessionID'].iloc[-3]
+    else:
+        patrons1 = mer_df.groupby(['Station Library Checkout', pd.Grouper(key='Trans Hist Date', freq='1W')])[['patrons', 'SessionID', 'total']].sum().reset_index()
+        weekly_Computer = patrons1[patrons1['Station Library Checkout'] == w_countries]['SessionID'].iloc[-2]
+        week_computer_dif = patrons1[patrons1['Station Library Checkout'] == w_countries]['SessionID'].iloc[-2] - patrons1[patrons1['Station Library Checkout'] == w_countries]['SessionID'].iloc[-3]
 
 
 
@@ -307,14 +348,14 @@ def update_graph(w_countries):
                        ),
                html.P('{0:,.0f}'.format(weekly_Computer),
                       style={'textAlign': 'center',
-                             'color': 'green',
+                             'color': 'orange',
                              'fontSize': 40}
                       ),
-               html.P('This Week:  ' + ' ' + '{0:,.0f}'.format(week_computer_dif)
-                      + ' (' + str(round(((week_computer_dif) / weekly_Computer) * 100, 2)) + '%' + ' ' + 'vs last Week)',
+               html.P('Last Week:  ' + ' ' + '{0:,.0f}'.format(week_computer_dif)
+                      + ' (' + str(round(((week_computer_dif) / weekly_Computer) * 100, 2)) + '%' + ' ' + 'vs Week before)',
                       style = {
                           'textAlign': 'center',
-                          'color': 'green',
+                          'color': 'orange',
                           'fontSize': 15,
                           'margin-top': '-18px'}
                       )
@@ -327,9 +368,14 @@ def update_graph(w_countries):
     )
 
 def update_graph(w_countries):
-    patrons1 = mer_df.groupby(['Station Library Checkout', pd.Grouper(key='Trans Hist Date', freq='1W')])[['patrons', 'SessionID', 'total']].sum().reset_index()
-    weekly_circulation = patrons1[patrons1['Station Library Checkout'] == w_countries]['patrons'].iloc[-1]
-    week_circulation_dif = patrons1[patrons1['Station Library Checkout'] == w_countries]['patrons'].iloc[-1] - patrons1[patrons1['Station Library Checkout'] == w_countries]['patrons'].iloc[-2]
+    if w_countries == 'all_values':
+        patrons1 = mer_df.groupby([pd.Grouper(key='Trans Hist Date', freq='1W')])[['patrons', 'SessionID', 'total']].sum().reset_index()
+        weekly_circulation = patrons1['patrons'].iloc[-2]
+        week_circulation_dif = patrons1['patrons'].iloc[-2] - patrons1['patrons'].iloc[-3]
+    else:
+        patrons1 = mer_df.groupby(['Station Library Checkout', pd.Grouper(key='Trans Hist Date', freq='1W')])[['patrons', 'SessionID', 'total']].sum().reset_index()
+        weekly_circulation = patrons1[patrons1['Station Library Checkout'] == w_countries]['patrons'].iloc[-2]
+        week_circulation_dif = patrons1[patrons1['Station Library Checkout'] == w_countries]['patrons'].iloc[-2] - patrons1[patrons1['Station Library Checkout'] == w_countries]['patrons'].iloc[-3]
 
 
 
@@ -341,14 +387,14 @@ def update_graph(w_countries):
                        ),
                html.P('{0:,.0f}'.format(weekly_circulation),
                       style={'textAlign': 'center',
-                             'color': 'green',
+                             'color': 'orange',
                              'fontSize': 40}
                       ),
-               html.P('This Week:  ' + ' ' + '{0:,.0f}'.format(week_circulation_dif)
-                      + ' (' + str(round(((week_circulation_dif) / weekly_circulation) * 100, 2)) + '%' + ' ' + 'vs last Week)',
+               html.P('Last Week:  ' + ' ' + '{0:,.0f}'.format(week_circulation_dif)
+                      + ' (' + str(round(((week_circulation_dif) / weekly_circulation) * 100, 2)) + '%' + ' ' + 'vs Week before)',
                       style = {
                           'textAlign': 'center',
-                          'color': 'green',
+                          'color': 'orange',
                           'fontSize': 15,
                           'margin-top': '-18px'}
                       )
