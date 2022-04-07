@@ -59,6 +59,7 @@ mer_df['total'] = mer_df['SessionID'] + mer_df['patrons']
 
 
 
+
 # Converting date column from string to proper date format
 mer_df['Trans Hist Date'] = pd.to_datetime(mer_df['Trans Hist Date'])
 
