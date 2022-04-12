@@ -227,7 +227,7 @@ def update_confirmed(w_countries):
         )],
 
         'layout': go.Layout(
-            title={'text': 'Last Week Total',
+            title={'text': "Last Week's Total",
                    'y': 1,
                    'x': 0.5,
                    'xanchor': 'center',
@@ -262,7 +262,7 @@ def update_confirmed(w_countries):
         )],
 
         'layout': go.Layout(
-            title={'text': 'Last Week Computer Usage',
+            title={'text': "Last Week's Computer Usage",
                    'y': 1,
                    'x': 0.5,
                    'xanchor': 'center',
@@ -297,7 +297,7 @@ def update_confirmed(w_countries):
         )],
 
         'layout': go.Layout(
-            title={'text': 'Last Week Circulation',
+            title={'text': "Last Week's Circulation",
                    'y': 1,
                    'x': 0.5,
                    'xanchor': 'center',
