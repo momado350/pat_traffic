@@ -56,6 +56,7 @@ covid_data_1w = mer_df.groupby([pd.Grouper(key='Trans Hist Date', freq='1W')])[[
 covid_data_1m = mer_df.groupby([pd.Grouper(key='Trans Hist Date', freq='M')])[['patrons', 'SessionID', 'total']].sum().reset_index()
 
 app = dash.Dash(__name__, meta_tags=[{"name": "viewport", "content": "width=device-width"}])
+server = app.server
 
 app.layout = html.Div([
     html.Div([
@@ -227,7 +228,7 @@ def update_confirmed(w_countries):
         )],
 
         'layout': go.Layout(
-            title={'text': "Last Week's Total",
+            title={'text': 'Last Week Total',
                    'y': 1,
                    'x': 0.5,
                    'xanchor': 'center',
@@ -262,7 +263,7 @@ def update_confirmed(w_countries):
         )],
 
         'layout': go.Layout(
-            title={'text': "Last Week's Computer Usage",
+            title={'text': 'Last Week Computer Usage',
                    'y': 1,
                    'x': 0.5,
                    'xanchor': 'center',
@@ -297,7 +298,7 @@ def update_confirmed(w_countries):
         )],
 
         'layout': go.Layout(
-            title={'text': "Last Week's Circulation",
+            title={'text': 'Last Week Circulation',
                    'y': 1,
                    'x': 0.5,
                    'xanchor': 'center',
