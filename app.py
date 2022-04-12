@@ -1,16 +1,10 @@
-# app env = myenv (source activate myenv)
 import dash
-import dash_core_components as dcc
 import dash_html_components as html
+import dash_core_components as dcc
 from dash.dependencies import Input, Output
 import plotly.graph_objs as go
 import pandas as pd
 
-
-
-# url_confirmed = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv'
-# url_deaths = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv'
-# url_recovered = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv'
 circulation = pd.read_csv('data/M.Ahmed Charge Hist log output with IDs.csv', parse_dates=['Trans Hist Date'])
 # import pyodbc
 # conn = pyodbc.connect('Driver={SQL Server};'
@@ -57,351 +51,488 @@ circulation2 = circulation2.replace({"hours": replace_values})
 mer_df = pd.merge(circulation2, computer_df)
 mer_df['total'] = mer_df['SessionID'] + mer_df['patrons']
 
-
-
-
-# Converting date column from string to proper date format
-mer_df['Trans Hist Date'] = pd.to_datetime(mer_df['Trans Hist Date'])
-
+covid_data_1 = mer_df.groupby(['Trans Hist Date'])[['patrons', 'SessionID', 'total']].sum().reset_index()
+covid_data_1w = mer_df.groupby([pd.Grouper(key='Trans Hist Date', freq='1W')])[['patrons', 'SessionID', 'total']].sum().reset_index()
+covid_data_1m = mer_df.groupby([pd.Grouper(key='Trans Hist Date', freq='M')])[['patrons', 'SessionID', 'total']].sum().reset_index()
 
 app = dash.Dash(__name__, meta_tags=[{"name": "viewport", "content": "width=device-width"}])
-server = app.server
 
 app.layout = html.Div([
     html.Div([
         html.Div([
             html.Img(src=app.get_asset_url('lib_logo.png'),
-                     id='corona-image',
-                     style={
-                         "height": "60px",
-                         "width": "auto",
-                         "margin-bottom": "25px",
-                     },
-                     )
-        ],
-            className="one-third column",
-        ),
-            
+                     id = 'corona-image',
+                     style={'height': '60px',
+                            'width': 'auto',
+                            'margin-bottom': '25px'})
+
+
+        ], className='one-third column'),
+
         html.Div([
             html.Div([
-                html.H3("Patrons Traffic", style={"margin-bottom": "0px", 'color': 'white'}),
-                html.H5("Track Patron Traffic by Library Branch", style={"margin-top": "0px", 'color': 'white'}),
-                html.P("Traffic is counted based on circulation and Computer Usage. ", style={"margin-top": "0px", 'color': 'white'}),
+                html.H3('Patrons Traffic Dashboard', style={'margin-bottom': '0px', 'color': 'white'}),
+                html.H5('Track Patron Traffic by Library Branch', style={'margin-bottom': '0px', 'color': 'white'})
             ])
-        ], className="one-half column", id="title"),
+
+        ], className='one-half column', id = 'title'),
 
         html.Div([
-            html.H6('Last Updated: ' + str(mer_df['Trans Hist Date'].iloc[-1].strftime("%B %d, %Y")) + '  00:01 (UTC)',
-                    style={'color': 'orange'}),
+            html.H6('Last Updated: ' + str(mer_df['Trans Hist Date'].iloc[-1].strftime('%B %d, %Y')) + ' 00:01 (UTC)',
+                    style={'color': 'orange'})
 
-        ], className="one-third column", id='title1'),
+        ], className='one-third column', id = 'title1')
 
-    ], id="header", className="row flex-display", style={"margin-bottom": "25px"}),
+    ], id = 'header', className= 'row flex-display', style={'margin-bottom': '25px'}),
+
+    html.Div([
+        html.Div([
+            html.H6(children='All Year to Date Traffic',
+                    style={'textAlign': 'center',
+                           'color': 'white'}),
+            html.P(f"{covid_data_1['total'].sum():,.0f}",
+                    style={'textAlign': 'center',
+                           'color': 'orange',
+                           'fontSize': 40}),
+            html.P('Last Month: ' + f"{covid_data_1m['total'].iloc[-1]:,.0f}"
+                   + ' (' + str(round(((covid_data_1m['total'].iloc[-1]) /
+                                   covid_data_1['total'].sum()) * 100, 2)) + '%)',
+                   style={'textAlign': 'center',
+                          'color': 'orange',
+                          'fontSize': 15,
+                          'margin-top': '-18px'})
+
+        ], className='card_container three columns'),
 
 html.Div([
+            html.H6(children='All Last Week,s Total',
+                    style={'textAlign': 'center',
+                           'color': 'white'}),
+            html.P(f"{covid_data_1w['total'].iloc[-1]:,.0f}",
+                    style={'textAlign': 'center',
+                           'color': 'orange',
+                           'fontSize': 40}),
+            html.P('Week Before: ' + f"{covid_data_1w['total'].iloc[-2]:,.0f}"
+                   + ' (' + str(round(((covid_data_1w['total'].iloc[-1]) /
+                                   covid_data_1w['total'].iloc[-2]) * 100, 2)) + '%)',
+                   style={'textAlign': 'center',
+                          'color': 'orange',
+                          'fontSize': 15,
+                          'margin-top': '-18px'})
+
+        ], className='card_container three columns'),
+
+html.Div([
+            html.H6(children="All Last Week's Computer Usage",
+                    style={'textAlign': 'center',
+                           'color': 'white'}),
+            html.P(f"{covid_data_1w['SessionID'].iloc[-1]:,.0f}",
+                    style={'textAlign': 'center',
+                           'color': 'orange',
+                           'fontSize': 40}),
+            html.P('Week Before: ' + f"{covid_data_1w['SessionID'].iloc[-2]:,.0f}"
+                   + ' (' + str(round(((covid_data_1w['SessionID'].iloc[-1]) /
+                                   covid_data_1w['SessionID'].iloc[-2]) * 100, 2)) + '%)',
+                   style={'textAlign': 'center',
+                          'color': 'orange',
+                          'fontSize': 15,
+                          'margin-top': '-18px'})
+
+        ], className='card_container three columns'),
+
+html.Div([
+            html.H6(children="All Last Week's Circulation",
+                    style={'textAlign': 'center',
+                           'color': 'white'}),
+            html.P(f"{covid_data_1w['patrons'].iloc[-1]:,.0f}",
+                    style={'textAlign': 'center',
+                           'color': 'orange',
+                           'fontSize': 40}),
+            html.P('Week Before: ' + f"{covid_data_1w['patrons'].iloc[-2]:,.0f}"
+                   + ' (' + str(round(((covid_data_1w['patrons'].iloc[-1]) /
+                                   covid_data_1w['patrons'].iloc[-2]) * 100, 2)) + '%)',
+                   style={'textAlign': 'center',
+                          'color': 'orange',
+                          'fontSize': 15,
+                          'margin-top': '-18px'})
+
+        ], className='card_container three columns'),
+
+    ], className='row flex display'),
+
+    html.Div([
         html.Div([
-
-
-            html.P('Select Branch', className = 'fix_label', style = {'color': 'white', 'margin-top': '2px'}),
+            html.P('Select Branch:', className='fix_label', style={'color': 'white'}),
             dcc.Dropdown(id = 'w_countries',
                          multi = False,
-                         clearable = True,
-                         disabled = False,
-                         style = {'display': True},
-                         value = 'all_values',
-                         placeholder = 'Select branch',
-                         options = [{'label': c, 'value': c}
-                                    for c in (mer_df['Station Library Checkout'].unique())] + [{'label': 'SELECT ALL', 'value': 'all_values'}]
-                                 
-                                    , className = 'dcc_compon'),
-                                
+                         searchable= True,
+                         value='KC-PLAZA',
+                         placeholder= 'Select Countries',
+                         options= [{'label': c, 'value': c}
+                                   for c in (mer_df['Station Library Checkout'].unique())], className='dcc_compon'),
+            html.P('Branch Traffic: ' + ' ' + str(mer_df['Trans Hist Date'].iloc[-1].strftime('%B %d, %Y')),
+                   className='fix_label', style={'text-align': 'center', 'color': 'white'}),
+            dcc.Graph(id = 'confirmed', config={'displayModeBar': False}, className='dcc_compon',
+                      style={'margin-top': '20px'}),
+dcc.Graph(id = 'death', config={'displayModeBar': False}, className='dcc_compon',
+                      style={'margin-top': '20px'}),
+dcc.Graph(id = 'recovered', config={'displayModeBar': False}, className='dcc_compon',
+                      style={'margin-top': '20px'}),
+# dcc.Graph(id = 'active', config={'displayModeBar': False}, className='dcc_compon',
+#                       style={'margin-top': '20px'})
 
+        ], className='create_container three columns'),
 
-            ],
-            className = "create_container2 four columns", style = {'margin-bottom': '20px', "margin-top": "20px"}),
-
-    ], className = "row flex-display"),
+        html.Div([
+dcc.Graph(id = 'pie_chart', config={'displayModeBar': 'hover'}
+                      )
+        ], className='create_container four columns'),
 
 html.Div([
-         html.Div([
-              html.Div(id='live_text1'),
-
-         ], className = "create_container two columns", style = {'text-align': 'center'}),
-
-
-         html.Div([
-              html.Div(id='live_text2'),
-
-         ], className = "create_container two columns", style = {'text-align': 'center'}),
-
-         html.Div([
-              html.Div(id='live_text3'),
-
-         ], className = "create_container two columns", style = {'text-align': 'center'}),
-
-
-         html.Div([
-              html.Div(id='live_text4'),
-
-         ], className = "create_container two columns", style = {'text-align': 'center'}),
-
-         html.Div([
-              html.Div(id='live_text5'),
-
-         ], className = "create_container two columns", style = {'text-align': 'center'}),
-
-         html.Div([
-              html.Div(id='live_text6'),
-
-         ], className = "create_container two columns", style = {'text-align': 'center'}),
-
-    ], className = "row flex-display"),
-
-    ], id="mainContainer",
-    style={"display": "flex", "flex-direction": "column"})
-
-@app.callback(
-    Output('live_text1', 'children'),
-    [
-        Input('w_countries', 'value')
-    ]
-    )
-
-def update_graph(w_countries):
-    if w_countries == 'all_values':
-        patrons = mer_df.groupby(['Trans Hist Date'])[['patrons', 'SessionID', 'total']].sum().reset_index()
-        total_patron = patrons['total'].iloc[-1]
-        today_patron = patrons['total'].iloc[-1] - patrons['total'].iloc[-2]
-    else:
-        patrons = mer_df.groupby(['Trans Hist Date', 'Station Library Checkout'])[['patrons', 'SessionID', 'total']].sum().reset_index()
-        total_patron = patrons[patrons['Station Library Checkout'] == w_countries]['total'].iloc[-1] 
-        today_patron = patrons[patrons['Station Library Checkout'] == w_countries]['total'].iloc[-1] - patrons[patrons['Station Library Checkout'] == w_countries]['total'].iloc[-2]
-
-    
-    
-    
-    #today_patron1 = patrons1[['total'].iloc[-1] - patrons1[['total'].iloc[-2]
-
-
-
-    return [
-               html.H6(children = "Yesterday's Total",
-                       style={'textAlign': 'center',
-                              'color': 'white'}
-                       ),
-               html.P('{0:,.0f}'.format(total_patron),
-                      style={'textAlign': 'center',
-                             'color': 'orange',
-                             'fontSize': 40}
-                      ),
-                    #   html.P('{0:,.0f}'.format(total_patron1),
-                    #   style={'textAlign': 'center',
-                    #          'color': 'orange',
-                    #          'fontSize': 40}
-                    #   ),
-               html.P('Yesterday:  ' + ' ' + '{0:,.0f}'.format(today_patron)
-                      + ' (' + str(round(((today_patron) / total_patron) * 100, 2)) + '%' + ' ' + 'vs day before)',
-                      style = {
-                          'textAlign': 'center',
-                          'color': 'orange',
-                          'fontSize': 15,
-                          'margin-top': '-18px'}
+dcc.Graph(id = 'line_chart', config={'displayModeBar': 'hover'}
                       )
+        ], className='create_container five columns'),
 
-    ]
+    ], className='row flex-display'),
 
-@app.callback(
-    Output('live_text2', 'children'),
-    [Input('w_countries', 'value')]
-    )
+#     html.Div([
+# html.Div([
+# dcc.Graph(id = 'map_chart', config={'displayModeBar': 'hover'}
+#                       )
+#         ], className='create_container1 twelve columns')
 
+#     ], className='row flex-display')
+
+], id = 'mainContainer', style={'display': 'flex', 'flex-direction': 'column'})
+
+@app.callback(Output('confirmed', 'figure'),
+              [Input('w_countries','value')])
+def update_confirmed(w_countries):
+    mer_df_2 = mer_df.groupby(['Station Library Checkout', pd.Grouper(key='Trans Hist Date', freq='1W')])[['patrons', 'SessionID', 'total']].sum().reset_index()
+    value_confirmed = mer_df_2[mer_df_2['Station Library Checkout'] == w_countries]['total'].iloc[-1]
+    delta_confirmed = mer_df_2[mer_df_2['Station Library Checkout'] == w_countries]['total'].iloc[-2] 
+
+    return {
+        'data': [go.Indicator(
+               mode='number+delta',
+               value=value_confirmed,
+               delta = {'reference': delta_confirmed,
+                        'position': 'right',
+                        'valueformat': ',g',
+                        'relative': False,
+                        'font': {'size': 15}},
+               number={'valueformat': ',',
+                       'font': {'size': 20}},
+               domain={'y': [0, 1], 'x': [0, 1]}
+        )],
+
+        'layout': go.Layout(
+            title={'text': 'Last Week Total',
+                   'y': 1,
+                   'x': 0.5,
+                   'xanchor': 'center',
+                   'yanchor': 'top'},
+            font=dict(color='orange'),
+            paper_bgcolor='#1f2c56',
+            plot_bgcolor='#1f2c56',
+            height = 50,
+
+        )
+    }
+
+@app.callback(Output('death', 'figure'),
+              [Input('w_countries','value')])
+def update_confirmed(w_countries):
+    covid_data_2 = mer_df.groupby(['Station Library Checkout', pd.Grouper(key='Trans Hist Date', freq='1W')])[['patrons', 'SessionID', 'total']].sum().reset_index()
+    value_death = covid_data_2[covid_data_2['Station Library Checkout'] == w_countries]['SessionID'].iloc[-1]
+    delta_death = covid_data_2[covid_data_2['Station Library Checkout'] == w_countries]['SessionID'].iloc[-2]
+
+    return {
+        'data': [go.Indicator(
+               mode='number+delta',
+               value=value_death,
+               delta = {'reference': delta_death,
+                        'position': 'right',
+                        'valueformat': ',g',
+                        'relative': False,
+                        'font': {'size': 15}},
+               number={'valueformat': ',',
+                       'font': {'size': 20}},
+               domain={'y': [0, 1], 'x': [0, 1]}
+        )],
+
+        'layout': go.Layout(
+            title={'text': 'Last Week Computer Usage',
+                   'y': 1,
+                   'x': 0.5,
+                   'xanchor': 'center',
+                   'yanchor': 'top'},
+            font=dict(color='orange'),
+            paper_bgcolor='#1f2c56',
+            plot_bgcolor='#1f2c56',
+            height = 50,
+
+        )
+    }
+
+@app.callback(Output('recovered', 'figure'),
+              [Input('w_countries','value')])
+def update_confirmed(w_countries):
+    covid_data_2 = mer_df.groupby(['Station Library Checkout', pd.Grouper(key='Trans Hist Date', freq='1W')])[['patrons', 'SessionID', 'total']].sum().reset_index()
+    value_recovered = covid_data_2[covid_data_2['Station Library Checkout'] == w_countries]['patrons'].iloc[-1]
+    delta_recovered = covid_data_2[covid_data_2['Station Library Checkout'] == w_countries]['patrons'].iloc[-2]
+
+    return {
+        'data': [go.Indicator(
+               mode='number+delta',
+               value=value_recovered,
+               delta = {'reference': delta_recovered,
+                        'position': 'right',
+                        'valueformat': ',g',
+                        'relative': False,
+                        'font': {'size': 15}},
+               number={'valueformat': ',',
+                       'font': {'size': 20}},
+               domain={'y': [0, 1], 'x': [0, 1]}
+        )],
+
+        'layout': go.Layout(
+            title={'text': 'Last Week Circulation',
+                   'y': 1,
+                   'x': 0.5,
+                   'xanchor': 'center',
+                   'yanchor': 'top'},
+            font=dict(color='orange'),
+            paper_bgcolor='#1f2c56',
+            plot_bgcolor='#1f2c56',
+            height = 50,
+
+        )
+    }
+
+# @app.callback(Output('active', 'figure'),
+#               [Input('w_countries','value')])
+# def update_confirmed(w_countries):
+#     covid_data_2 = covid_data.groupby(['date', 'Station Library Checkout'])[['confirmed', 'death', 'recovered', 'active']].sum().reset_index()
+#     value_active = covid_data_2[covid_data_2['Station Library Checkout'] == w_countries]['active'].iloc[-1] - covid_data_2[covid_data_2['Station Library Checkout'] == w_countries]['active'].iloc[-2]
+#     delta_active = covid_data_2[covid_data_2['Station Library Checkout'] == w_countries]['active'].iloc[-2] - covid_data_2[covid_data_2['Station Library Checkout'] == w_countries]['active'].iloc[-3]
+
+#     return {
+#         'data': [go.Indicator(
+#                mode='number+delta',
+#                value=value_active,
+#                delta = {'reference': delta_active,
+#                         'position': 'right',
+#                         'valueformat': ',g',
+#                         'relative': False,
+#                         'font': {'size': 15}},
+#                number={'valueformat': ',',
+#                        'font': {'size': 20}},
+#                domain={'y': [0, 1], 'x': [0, 1]}
+#         )],
+
+#         'layout': go.Layout(
+#             title={'text': 'New Active',
+#                    'y': 1,
+#                    'x': 0.5,
+#                    'xanchor': 'center',
+#                    'yanchor': 'top'},
+#             font=dict(color='#e55467'),
+#             paper_bgcolor='#1f2c56',
+#             plot_bgcolor='#1f2c56',
+#             height = 50,
+
+#         )
+#     }
+
+@app.callback(Output('pie_chart', 'figure'),
+              [Input('w_countries','value')])
 def update_graph(w_countries):
-    if w_countries == 'all_values':
-        patrons = mer_df.groupby(['Trans Hist Date'])[['patrons', 'SessionID', 'total']].sum().reset_index()
-        total_computer = patrons['SessionID'].iloc[-1]
-        today_computer = patrons['SessionID'].iloc[-1] - patrons['SessionID'].iloc[-2]
-    else:
-        patrons = mer_df.groupby(['Trans Hist Date', 'Station Library Checkout'])[['patrons', 'SessionID', 'total']].sum().reset_index()
-        total_computer = patrons[patrons['Station Library Checkout'] == w_countries]['SessionID'].iloc[-1]
-        today_computer = patrons[patrons['Station Library Checkout'] == w_countries]['SessionID'].iloc[-1] - patrons[patrons['Station Library Checkout'] == w_countries]['SessionID'].iloc[-2]
+    covid_data_2 = mer_df.groupby(['Station Library Checkout', 'Trans Hist Date'])[['patrons', 'SessionID', 'total']].sum().reset_index()
+    confirmed_value = covid_data_2[covid_data_2['Station Library Checkout'] == w_countries]['patrons'].sum()
+    death_value = covid_data_2[covid_data_2['Station Library Checkout'] == w_countries]['SessionID'].sum()
+    recovered_value = covid_data_2[covid_data_2['Station Library Checkout'] == w_countries]['total'].sum()
+    #active_value = covid_data_2[covid_data_2['Station Library Checkout'] == w_countries]['active'].iloc[-1]
+    colors = ['orange', 'blue']
+
+    return {
+        'data': [go.Pie(
+            # labels=['Circulation', 'Computer', 'Total of Both'],
+            labels=['Circulation', 'Computer'],
+            values=[confirmed_value, death_value, recovered_value],
+            marker=dict(colors=colors),
+            hoverinfo='label+value+percent',
+            textinfo='label+value',
+            hole=.7,
+            rotation=45,
+            # insidetextorientation= 'radial'
+
+        )],
+
+        'layout': go.Layout(
+            title={'text': 'Branch Total (Year to Date): ' + (w_countries),
+                   'y': 0.93,
+                   'x': 0.5,
+                   'xanchor': 'center',
+                   'yanchor': 'top'},
+            titlefont={'color': 'white',
+                       'size': 20},
+            font=dict(family='sans-serif',
+                      color='white',
+                      size=12),
+            hovermode='closest',
+            paper_bgcolor='#1f2c56',
+            plot_bgcolor='#1f2c56',
+            legend={'orientation': 'h',
+                    'bgcolor': '#1f2c56',
+                    'xanchor': 'center', 'x': 0.5, 'y': -0.7}
 
 
+        )
+    }
 
-    return [
-               html.H6(children = "Yesterday's Computer",
-                       style={'textAlign': 'center',
-                              'color': 'white'}
-                       ),
-               html.P('{0:,.0f}'.format(total_computer),
-                      style={'textAlign': 'center',
-                             'color': 'orange',
-                             'fontSize': 40}
-                      ),
-               html.P('Yeterday:  ' + ' ' + '{0:,.0f}'.format(today_computer)
-                      + ' (' + str(round(((today_computer) / total_computer) * 100, 2)) + '%' + ' ' + 'vs day before)',
-                      style = {
-                          'textAlign': 'center',
-                          'color': 'orange',
-                          'fontSize': 15,
-                          'margin-top': '-18px'}
-                      )
-
-    ]
-
-@app.callback(
-    Output('live_text3', 'children'),
-    [Input('w_countries', 'value')]
-    )
-
+@app.callback(Output('line_chart', 'figure'),
+              [Input('w_countries','value')])
 def update_graph(w_countries):
-    if w_countries == 'all_values':
-        patrons = mer_df.groupby(['Trans Hist Date'])[['patrons', 'SessionID', 'total']].sum().reset_index()
-        total_criculation = patrons['patrons'].iloc[-1]
-        today_circulation = patrons['patrons'].iloc[-1] - patrons['patrons'].iloc[-2]
-    else:
-        patrons = mer_df.groupby(['Trans Hist Date', 'Station Library Checkout'])[['patrons', 'SessionID', 'total']].sum().reset_index()
-        total_criculation = patrons[patrons['Station Library Checkout'] == w_countries]['patrons'].iloc[-1]
-        today_circulation = patrons[patrons['Station Library Checkout'] == w_countries]['patrons'].iloc[-1] - patrons[patrons['Station Library Checkout'] == w_countries]['patrons'].iloc[-2]
+    covid_data_2 = mer_df.groupby(['Station Library Checkout','Trans Hist Date'])[['patrons', 'SessionID', 'total']].sum().reset_index()
+    covid_data_3 = covid_data_2[covid_data_2['Station Library Checkout'] == w_countries][['Station Library Checkout', 'Trans Hist Date', 'total']].reset_index()
+    covid_data_3['daily confirmed'] = covid_data_3['total'].shift(1)
+    covid_data_3['Rolling Ave.'] = covid_data_3['total'].rolling(window=7).mean()
+
+
+    return {
+        'data': [go.Bar(
+            x=covid_data_3['Trans Hist Date'].tail(30),
+            y=covid_data_3['daily confirmed'].tail(30),
+            name='Daily Patron Traffic',
+            marker=dict(color='orange'),
+            hoverinfo='text',
+            hovertext=
+            '<b>Date</b>: ' + covid_data_3['Trans Hist Date'].tail(30).astype(str) + '<br>' +
+            '<b>Daily Traffic Numbers</b>: ' + [f'{x:,.0f}' for x in covid_data_3['daily confirmed'].tail(30)] + '<br>' +
+            '<b>Branch</b>: ' + covid_data_3['Station Library Checkout'].tail(30).astype(str) + '<br>'
+
+
+        ),
+            go.Scatter(
+                x=covid_data_3['Trans Hist Date'].tail(30),
+                y=covid_data_3['Rolling Ave.'].tail(30),
+                mode='lines',
+                name='Rolling Average of the last 7 days - daily Patron Traffic',
+                line=dict(width=3, color='#FF00FF'),
+                hoverinfo='text',
+                hovertext=
+                '<b>Date</b>: ' + covid_data_3['Trans Hist Date'].tail(30).astype(str) + '<br>' +
+                '<b>Daily Traffic</b>: ' + [f'{x:,.0f}' for x in covid_data_3['Rolling Ave.'].tail(30)] + '<br>'
+
+
+            )],
+
+        'layout': go.Layout(
+            title={'text': 'Last 30 Days Daily Patron Traffic: ' + (w_countries),
+                   'y': 0.93,
+                   'x': 0.5,
+                   'xanchor': 'center',
+                   'yanchor': 'top'},
+            titlefont={'color': 'white',
+                       'size': 20},
+            font=dict(family='sans-serif',
+                      color='white',
+                      size=12),
+            hovermode='closest',
+            paper_bgcolor='#1f2c56',
+            plot_bgcolor='#1f2c56',
+            legend={'orientation': 'h',
+                    'bgcolor': '#1f2c56',
+                    'xanchor': 'center', 'x': 0.5, 'y': -0.7},
+            margin=dict(r=0),
+            xaxis=dict(title='<b>Date</b>',
+                       color = 'white',
+                       showline=True,
+                       showgrid=True,
+                       showticklabels=True,
+                       linecolor='white',
+                       linewidth=1,
+                       ticks='outside',
+                       tickfont=dict(
+                           family='Aerial',
+                           color='white',
+                           size=12
+                       )),
+            yaxis=dict(title='<b>Daily Patron Traffic</b>',
+                       color='white',
+                       showline=True,
+                       showgrid=True,
+                       showticklabels=True,
+                       linecolor='white',
+                       linewidth=1,
+                       ticks='outside',
+                       tickfont=dict(
+                           family='Aerial',
+                           color='white',
+                           size=12
+                       )
+                       )
+
+
+        )
+    }
+
+# @app.callback(Output('map_chart', 'figure'),
+#               [Input('w_countries','value')])
+# def update_graph(w_countries):
+#     covid_data_4 = covid_data.groupby(['Lat', 'Long', 'Station Library Checkout'])[['confirmed', 'death', 'recovered', 'active']].max().reset_index()
+#     covid_data_5 = covid_data_4[covid_data_4['Station Library Checkout'] == w_countries]
+
+#     if w_countries:
+#         zoom=2
+#         zoom_lat = dict_of_locations[w_countries]['Lat']
+#         zoom_long = dict_of_locations[w_countries]['Long']
 
 
 
-    return [
-               html.H6(children = "Yesterday's Circulation",
-                       style={'textAlign': 'center',
-                              'color': 'white'}
-                       ),
-               html.P('{0:,.0f}'.format(total_criculation),
-                      style={'textAlign': 'center',
-                             'color': 'orange',
-                             'fontSize': 40}
-                      ),
-               html.P('Yesterday:  ' + ' ' + '{0:,.0f}'.format(today_circulation)
-                      + ' (' + str(round(((today_circulation) / total_criculation) * 100, 2)) + '%' + ' ' + 'vs day before)',
-                      style = {
-                          'textAlign': 'center',
-                          'color': 'orange',
-                          'fontSize': 15,
-                          'margin-top': '-18px'}
-                      )
-
-    ]
-
-@app.callback(
-    Output('live_text4', 'children'),
-    [Input('w_countries', 'value')]
-    )
-
-def update_graph(w_countries):
-    if w_countries == 'all_values':
-        patrons1 = mer_df.groupby([pd.Grouper(key='Trans Hist Date', freq='1W')])[['patrons', 'SessionID', 'total']].sum().reset_index()
-        weekly_total = patrons1['total'].iloc[-2]
-        week_total_dif = patrons1['total'].iloc[-2] - patrons1['total'].iloc[-3]
-    else:
-        patrons1 = mer_df.groupby(['Station Library Checkout', pd.Grouper(key='Trans Hist Date', freq='1W')])[['patrons', 'SessionID', 'total']].sum().reset_index()
-        weekly_total = patrons1[patrons1['Station Library Checkout'] == w_countries]['total'].iloc[-2]
-        week_total_dif = patrons1[patrons1['Station Library Checkout'] == w_countries]['total'].iloc[-2] - patrons1[patrons1['Station Library Checkout'] == w_countries]['total'].iloc[-3]
+#     return {
+#         'data': [go.Scattermapbox(
+#             lon=covid_data_5['Long'],
+#             lat=covid_data_5['Lat'],
+#             mode='markers',
+#             marker=go.scattermapbox.Marker(size=covid_data_5['confirmed'] / 1500,
+#                                            color=covid_data_5['confirmed'],
+#                                            colorscale='HSV',
+#                                            showscale=False,
+#                                            sizemode='area',
+#                                            opacity=0.3),
+#             hoverinfo='text',
+#             hovertext=
+#             '<b>Country</b>: ' + covid_data_5['Station Library Checkout'].astype(str) + '<br>' +
+#             '<b>Longitude</b>: ' + covid_data_5['Long'].astype(str) + '<br>' +
+#             '<b>Latitude</b>: ' + covid_data_5['Lat'].astype(str) + '<br>' +
+#             '<b>Confirmed Cases</b>: ' + [f'{x:,.0f}' for x in covid_data_5['confirmed']] + '<br>' +
+#             '<b>Death</b>: ' + [f'{x:,.0f}' for x in covid_data_5['death']] + '<br>' +
+#             '<b>Recovered Cases</b>: ' + [f'{x:,.0f}' for x in covid_data_5['recovered']] + '<br>' +
+#             '<b>Active Cases</b>: ' + [f'{x:,.0f}' for x in covid_data_5['active']] + '<br>'
 
 
+#         )],
 
-    return [
-               html.H6(children = "Week Total",
-                       style={'textAlign': 'center',
-                              'color': 'white'}
-                       ),
-               html.P('{0:,.0f}'.format(weekly_total),
-                      style={'textAlign': 'center',
-                             'color': 'orange',
-                             'fontSize': 40}
-                      ),
-               html.P('Last Week:  ' + ' ' + '{0:,.0f}'.format(week_total_dif)
-                      + ' (' + str(round(((week_total_dif) / weekly_total) * 100, 2)) + '%' + ' ' + 'vs Week before)',
-                      style = {
-                          'textAlign': 'center',
-                          'color': 'orange',
-                          'fontSize': 15,
-                          'margin-top': '-18px'}
-                      )
-
-    ]
-
-@app.callback(
-    Output('live_text5', 'children'),
-    [Input('w_countries', 'value')]
-    )
-
-def update_graph(w_countries):
-    if w_countries == 'all_values':
-        patrons1 = mer_df.groupby([pd.Grouper(key='Trans Hist Date', freq='1W')])[['patrons', 'SessionID', 'total']].sum().reset_index()
-        weekly_Computer = patrons1['SessionID'].iloc[-2]
-        week_computer_dif = patrons1['SessionID'].iloc[-2] - patrons1['SessionID'].iloc[-3]
-    else:
-        patrons1 = mer_df.groupby(['Station Library Checkout', pd.Grouper(key='Trans Hist Date', freq='1W')])[['patrons', 'SessionID', 'total']].sum().reset_index()
-        weekly_Computer = patrons1[patrons1['Station Library Checkout'] == w_countries]['SessionID'].iloc[-2]
-        week_computer_dif = patrons1[patrons1['Station Library Checkout'] == w_countries]['SessionID'].iloc[-2] - patrons1[patrons1['Station Library Checkout'] == w_countries]['SessionID'].iloc[-3]
+#         'layout': go.Layout(
+#             hovermode='x',
+#             paper_bgcolor='#1f2c56',
+#             plot_bgcolor='#1f2c56',
+#             margin=dict(r=0, l =0, b = 0, t = 0),
+#             mapbox=dict(
+#                 accesstoken='pk.eyJ1IjoicXM2MjcyNTI3IiwiYSI6ImNraGRuYTF1azAxZmIycWs0cDB1NmY1ZjYifQ.I1VJ3KjeM-S613FLv3mtkw',
+#                 center = go.layout.mapbox.Center(lat=zoom_lat, lon=zoom_long),
+#                 style='dark',
+#                 zoom=zoom,
+#             ),
+#             autosize=True
 
 
 
-
-    return [
-               html.H6(children = "Weekly Computer Users",
-                       style={'textAlign': 'center',
-                              'color': 'white'}
-                       ),
-               html.P('{0:,.0f}'.format(weekly_Computer),
-                      style={'textAlign': 'center',
-                             'color': 'orange',
-                             'fontSize': 40}
-                      ),
-               html.P('Last Week:  ' + ' ' + '{0:,.0f}'.format(week_computer_dif)
-                      + ' (' + str(round(((week_computer_dif) / weekly_Computer) * 100, 2)) + '%' + ' ' + 'vs Week before)',
-                      style = {
-                          'textAlign': 'center',
-                          'color': 'orange',
-                          'fontSize': 15,
-                          'margin-top': '-18px'}
-                      )
-
-    ]
-
-@app.callback(
-    Output('live_text6', 'children'),
-    [Input('w_countries', 'value')]
-    )
-
-def update_graph(w_countries):
-    if w_countries == 'all_values':
-        patrons1 = mer_df.groupby([pd.Grouper(key='Trans Hist Date', freq='1W')])[['patrons', 'SessionID', 'total']].sum().reset_index()
-        weekly_circulation = patrons1['patrons'].iloc[-2]
-        week_circulation_dif = patrons1['patrons'].iloc[-2] - patrons1['patrons'].iloc[-3]
-    else:
-        patrons1 = mer_df.groupby(['Station Library Checkout', pd.Grouper(key='Trans Hist Date', freq='1W')])[['patrons', 'SessionID', 'total']].sum().reset_index()
-        weekly_circulation = patrons1[patrons1['Station Library Checkout'] == w_countries]['patrons'].iloc[-2]
-        week_circulation_dif = patrons1[patrons1['Station Library Checkout'] == w_countries]['patrons'].iloc[-2] - patrons1[patrons1['Station Library Checkout'] == w_countries]['patrons'].iloc[-3]
-
-
-
-
-    return [
-               html.H6(children = "Weekly Circulation Users",
-                       style={'textAlign': 'center',
-                              'color': 'white'}
-                       ),
-               html.P('{0:,.0f}'.format(weekly_circulation),
-                      style={'textAlign': 'center',
-                             'color': 'orange',
-                             'fontSize': 40}
-                      ),
-               html.P('Last Week:  ' + ' ' + '{0:,.0f}'.format(week_circulation_dif)
-                      + ' (' + str(round(((week_circulation_dif) / weekly_circulation) * 100, 2)) + '%' + ' ' + 'vs Week before)',
-                      style = {
-                          'textAlign': 'center',
-                          'color': 'orange',
-                          'fontSize': 15,
-                          'margin-top': '-18px'}
-                      )
-    ]
-
-
+#         )
+#     }
 
 if __name__ == '__main__':
     app.run_server(debug=True)
+
