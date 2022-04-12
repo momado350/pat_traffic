@@ -105,7 +105,7 @@ app.layout = html.Div([
         ], className='card_container three columns'),
 
 html.Div([
-            html.H6(children='All Last Week,s Total',
+            html.H6(children="All Last Week's Total",
                     style={'textAlign': 'center',
                            'color': 'white'}),
             html.P(f"{covid_data_1w['total'].iloc[-1]:,.0f}",
