@@ -61,7 +61,7 @@ server = app.server
 app.layout = html.Div([
     html.Div([
         html.Div([
-            html.Img(src=app.get_asset_url('lib_logo.png'),
+            html.Img(src=app.get_asset_url("lib_logo.png"),
                      id = 'corona-image',
                      style={'height': '60px',
                             'width': 'auto',
